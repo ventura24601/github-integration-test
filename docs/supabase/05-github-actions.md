@@ -6,15 +6,15 @@ Objetivo: ao fazer merge na `main`, aplicar automaticamente as migrations e publ
 
 ```bash
 gh secret set SUPABASE_ACCESS_TOKEN    # token de https://supabase.com/dashboard/account/tokens
-gh secret set SUPABASE_DB_PASSWORD     # senha do banco do projeto
 gh secret set SUPABASE_PROJECT_REF     # ref do projeto
+gh secret set SUPABASE_DB_PASSWORD     # opcional: sem ela, a CLI usa uma role temporária
 ```
 
-## 2. Criar o workflow
+## 2. O workflow
 
-Copie [`docs/exemplos/supabase-deploy.yml`](../exemplos/supabase-deploy.yml) para `.github/workflows/supabase-deploy.yml`.
+Este repositório já tem o workflow em [`.github/workflows/supabase-deploy.yml`](../../.github/workflows/supabase-deploy.yml). Para outro projeto, copie o arquivo para o mesmo caminho.
 
-O exemplo fica em `docs/` (e não em `.github/workflows/`) para não rodar neste repositório enquanto os secrets não estiverem configurados.
+Se os secrets não estiverem configurados, ele termina com um aviso em vez de falhar.
 
 ## 3. Acompanhar
 

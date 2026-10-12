@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tutorial Notas</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>📝 Tutorial Notas</h1>
+        <div id="usuario" hidden>
+          <span id="usuario-email"></span>
+          <button id="sair" type="button">Sair</button>
+        </div>
+      </header>
+
+      <!-- Módulo 3: Auth -->
+      <section id="tela-login">
+        <h2>Entrar</h2>
+        <form id="form-login">
+          <input name="email" type="email" placeholder="e-mail" required autocomplete="email" />
+          <input name="senha" type="password" placeholder="senha (mín. 6)" minlength="6" required autocomplete="current-password" />
+          <div class="acoes">
+            <button type="submit" data-acao="entrar">Entrar</button>
+            <button type="submit" data-acao="cadastrar" class="secundario">Criar conta</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="tela-notas" hidden>
+        <!-- Módulos 2 e 4: CRUD + Storage -->
+        <form id="form-nota">
+          <input name="id" type="hidden" />
+          <input name="titulo" placeholder="Título" maxlength="200" required />
+          <textarea name="conteudo" rows="3" placeholder="Conteúdo"></textarea>
+          <label class="arquivo">Anexo (até 5 MB): <input name="anexo" type="file" /></label>
+          <div class="acoes">
+            <button type="submit" id="salvar">Adicionar nota</button>
+            <button type="button" id="cancelar" class="secundario" hidden>Cancelar edição</button>
+          </div>
+        </form>
+
+        <div class="barra">
+          <!-- Módulo 5: Realtime -->
+          <span id="realtime-status" class="status">● realtime desconectado</span>
+          <!-- Módulo 6: Edge Function -->
+          <button id="exportar" type="button" class="secundario">Exportar .md</button>
+        </div>
+
+        <ul id="lista-notas"></ul>
+      </section>
+
+      <p id="mensagem" role="status"></p>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
