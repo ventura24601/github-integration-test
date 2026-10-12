@@ -16,6 +16,17 @@ Repositório de referência pessoal para trabalhar com **Git/GitHub** e **Supaba
 | Supabase CLI   | `brew install supabase/tap/supabase`    | `supabase login`   |
 | Docker         | Docker Desktop ou OrbStack              | — (só para rodar a Supabase local) |
 
+## Tutorial interativo
+
+Versão em HTML de todo este repositório, com trilhas (GitHub, Supabase CLI, App de Notas, Netlify), checklist de progresso e botão de copiar nos comandos:
+
+```bash
+cd app && npm install && npm run dev
+# abra http://localhost:5173/tutorial/index.html
+```
+
+Arquivo: [`app/public/tutorial/index.html`](app/public/tutorial/index.html). O progresso fica salvo no navegador.
+
 ## Tutorial: app de Notas
 
 App em Vite + supabase-js que usa, módulo a módulo, as principais funcionalidades da Supabase. Veja o [índice do tutorial](docs/tutorial/README.md).
@@ -55,6 +66,7 @@ cd app && npm install && npm run dev   # http://localhost:5173
 ```
 .
 ├── app/                    # app de Notas (Vite + supabase-js)
+│   └── public/tutorial/    # tutorial interativo em HTML
 ├── docs/
 │   ├── github/             # guias de Git e GitHub CLI
 │   ├── supabase/           # referência da Supabase CLI
