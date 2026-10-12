@@ -1,6 +1,17 @@
 # github-integration-test
 
-Repositório de referência pessoal para trabalhar com **Git/GitHub** e **Supabase** pela linha de comando. Ele serve como guia de consulta, tem um tutorial prático com um app de exemplo e funciona como projeto de teste das integrações.
+Repositório de referência pessoal para trabalhar com **Git/GitHub**, **Supabase** e **Netlify** pela linha de comando. Ele serve como guia de consulta, tem um tutorial prático com um app de exemplo e funciona como projeto de teste das integrações.
+
+## 🌐 No ar
+
+| | Link |
+|---|---|
+| Tutorial interativo | <https://tutorial-notas-ventura.netlify.app/tutorial/> |
+| App de Notas | <https://tutorial-notas-ventura.netlify.app> |
+| Painel do Netlify | <https://app.netlify.com/projects/tutorial-notas-ventura> |
+| Painel da Supabase | <https://supabase.com/dashboard/project/zgccfwijmnjzvxmasfiu> |
+
+![Tutorial interativo: trilhas no menu lateral e progresso das tarefas](docs/img/tutorial-trilhas.jpg)
 
 ## Comece aqui
 
@@ -14,11 +25,18 @@ Repositório de referência pessoal para trabalhar com **Git/GitHub** e **Supaba
 | Git            | `xcode-select --install`                | —                  |
 | GitHub CLI     | `brew install gh`                       | `gh auth login`    |
 | Supabase CLI   | `brew install supabase/tap/supabase`    | `supabase login`   |
+| Netlify CLI    | `npm install -g --prefix ~/.local netlify-cli` | `netlify login` |
 | Docker         | Docker Desktop ou OrbStack              | — (só para rodar a Supabase local) |
 
 ## Tutorial interativo
 
-Versão em HTML de todo este repositório, com trilhas (GitHub, Supabase CLI, App de Notas, Netlify), checklist de progresso e botão de copiar nos comandos:
+Versão em HTML de todo este repositório, com trilhas (GitHub, Supabase CLI, App de Notas, Netlify), checklist de progresso e botão de copiar nos comandos. Publicada em <https://tutorial-notas-ventura.netlify.app/tutorial/>.
+
+| Passo "Pull requests" | No celular |
+|---|---|
+| ![Passo de pull requests com o print da barra de PR do Claude](docs/img/tutorial-pull-requests.jpg) | <img src="docs/img/tutorial-mobile.jpg" alt="Tutorial no celular, passo Banco + RLS" width="220"> |
+
+Para rodar localmente:
 
 ```bash
 cd app && npm install && npm run dev
@@ -29,7 +47,9 @@ Arquivo: [`app/public/tutorial/index.html`](app/public/tutorial/index.html). O p
 
 ## Tutorial: app de Notas
 
-App em Vite + supabase-js que usa, módulo a módulo, as principais funcionalidades da Supabase. Veja o [índice do tutorial](docs/tutorial/README.md).
+App em Vite + supabase-js que usa, módulo a módulo, as principais funcionalidades da Supabase. Veja o [índice do tutorial](docs/tutorial/README.md). Publicado em <https://tutorial-notas-ventura.netlify.app>.
+
+<img src="docs/img/app-login.jpg" alt="Tela de login do app de Notas" width="560">
 
 | # | Módulo |
 |---|---|
@@ -61,6 +81,10 @@ cd app && npm install && npm run dev   # http://localhost:5173
 4. [Edge Functions, secrets e tipos](docs/supabase/04-edge-functions-secrets-tipos.md)
 5. [Supabase + GitHub Actions](docs/supabase/05-github-actions.md)
 
+### Netlify
+1. [CLI e deploy](docs/netlify/01-cli-e-deploy.md): login, `netlify.toml`, variáveis, rascunho x produção
+2. [Netlify + GitHub Actions](docs/netlify/02-github-actions.md): produção a cada merge e preview em cada PR
+
 ## Estrutura
 
 ```
@@ -70,6 +94,8 @@ cd app && npm install && npm run dev   # http://localhost:5173
 ├── docs/
 │   ├── github/             # guias de Git e GitHub CLI
 │   ├── supabase/           # referência da Supabase CLI
+│   ├── netlify/            # guias da Netlify CLI e deploy
+│   ├── img/                # prints usados no README
 │   └── tutorial/           # tutorial passo a passo do app
 ├── scripts/
 │   ├── check-tools.sh      # verifica ferramentas e logins
@@ -78,7 +104,8 @@ cd app && npm install && npm run dev   # http://localhost:5173
 │   ├── config.toml         # configuração do projeto
 │   ├── migrations/         # SQL versionado (tabela notas, bucket anexos)
 │   └── functions/          # Edge Functions (exportar-notas)
-├── .github/workflows/      # deploy automático das migrations e funções
+├── .github/workflows/      # deploy automático (Supabase e Netlify)
+├── netlify.toml            # build do site no Netlify
 └── .env.example            # variáveis necessárias (copie para .env)
 ```
 
@@ -96,4 +123,10 @@ supabase migration new <nome>
 supabase db push
 supabase functions deploy <nome> --use-api
 supabase gen types typescript --linked > app/src/database.types.ts
+
+# Netlify
+netlify status
+netlify build
+netlify deploy --dir app/dist          # rascunho
+netlify deploy --dir app/dist --prod   # produção
 ```
