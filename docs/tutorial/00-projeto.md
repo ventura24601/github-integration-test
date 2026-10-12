@@ -43,7 +43,7 @@ A CLI atual não precisa da senha para `link`, `db push` e `migration list`: ela
 
 ## Configuração de Auth do projeto
 
-O `supabase/config.toml` define `site_url = http://localhost:5173` e desliga a confirmação de e-mail, para facilitar o tutorial. Para aplicar no projeto remoto:
+O `supabase/config.toml` define `site_url` como o site publicado no Netlify, libera `http://localhost:5173` nos redirects e desliga a confirmação de e-mail, para facilitar o tutorial. Para aplicar no projeto remoto:
 
 ```bash
 supabase config diff     # revise o que vai mudar
