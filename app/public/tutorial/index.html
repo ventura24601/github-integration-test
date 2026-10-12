@@ -213,7 +213,7 @@
     <tr><td>GitHub</td><td>Criar e clonar repositórios, commits, <code>gh</code>, pull requests</td></tr>
     <tr><td>Supabase CLI</td><td>Login, projetos, migrations, Edge Functions, deploy pelo GitHub Actions</td></tr>
     <tr><td>App de Notas</td><td>Banco com RLS, Auth, Storage, Realtime, Edge Function e tipos, num app real</td></tr>
-    <tr><td>Netlify</td><td>Publicar o app (em breve)</td></tr>
+    <tr><td>Netlify</td><td>Publicar o app e este tutorial, com deploy automático e previews de PR</td></tr>
   </table>
   <div class="tarefas"><h2>Checklist</h2><ul>
     <li data-tarefa="ler">Li como o tutorial funciona</li>
@@ -569,17 +569,61 @@ gh pr create --fill
 
 <!-- ================= NETLIFY ================= -->
 
-<section data-passo="netlify" data-trilha="Netlify" data-titulo="Publicar o app (em breve)">
-  <h1>Netlify (em breve)</h1>
-  <p class="lead">A próxima etapa: publicar o app e este tutorial no Netlify, com deploy automático a cada merge e preview de cada PR.</p>
-  <ul>
-    <li>Instalar a Netlify CLI e fazer <code>netlify login</code></li>
-    <li>Criar o site e o <code>netlify.toml</code></li>
-    <li>Configurar as variáveis da Supabase no Netlify</li>
-    <li>Ligar o deploy ao GitHub</li>
-  </ul>
+<section data-passo="netlify-cli" data-trilha="Netlify" data-titulo="CLI e site" data-doc="docs/netlify/01-cli-e-deploy.md">
+  <h1>Netlify: CLI e site</h1>
+  <p class="lead">O Netlify hospeda o app e este tutorial como site estático: <a href="https://tutorial-notas-ventura.netlify.app" target="_blank" rel="noopener">tutorial-notas-ventura.netlify.app</a>.</p>
+<pre><code>npm install -g --prefix ~/.local netlify-cli
+echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.zshrc &amp;&amp; source ~/.zshrc
+netlify login
+netlify status</code></pre>
+  <h2>Criar e vincular o site</h2>
+<pre><code>netlify sites:create --name meu-site   # cria e vincula a pasta atual
+netlify link                           # ou: vincula a um site existente
+netlify open                           # abre o painel</code></pre>
+  <h2><code>netlify.toml</code></h2>
+<pre><code>[build]
+  base = "app"
+  command = "npm run build"
+  publish = "dist"</code></pre>
   <div class="tarefas"><h2>Checklist</h2><ul>
-    <li data-tarefa="aguardar">Vi o que vem a seguir</li>
+    <li data-tarefa="login">Fiz <code>netlify login</code></li>
+    <li data-tarefa="status"><code>netlify status</code> mostra o site vinculado</li>
+  </ul></div>
+</section>
+
+<section data-passo="netlify-deploy" data-trilha="Netlify" data-titulo="Variáveis e deploy" data-doc="docs/netlify/01-cli-e-deploy.md">
+  <h1>Variáveis e deploy</h1>
+  <p class="lead">O Vite embute as variáveis <code>VITE_*</code> no build, então elas precisam estar cadastradas no Netlify.</p>
+<pre><code>netlify env:set VITE_SUPABASE_URL https://&lt;ref&gt;.supabase.co
+netlify env:set VITE_SUPABASE_PUBLISHABLE_KEY sb_publishable_...
+netlify env:list</code></pre>
+  <div class="aviso">Só chaves que podem ir para o navegador. A <code>sb_secret_…</code> nunca entra num site estático.</div>
+<pre><code>netlify build                          # build com as variáveis do site
+netlify deploy --dir app/dist          # rascunho (só a equipe vê)
+netlify deploy --dir app/dist --prod   # produção (público)</code></pre>
+  <div class="dica">Depois de publicar, aplique o <code>supabase config push</code>: ele coloca a URL do Netlify como <code>site_url</code> do Auth.</div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="env">Cadastrei as variáveis no Netlify</li>
+    <li data-tarefa="draft">Fiz um deploy de rascunho</li>
+    <li data-tarefa="prod">Abri o site de produção</li>
+  </ul></div>
+</section>
+
+<section data-passo="netlify-actions" data-trilha="Netlify" data-titulo="Deploy pelo GitHub Actions" data-doc="docs/netlify/02-github-actions.md">
+  <h1>Deploy pelo GitHub Actions</h1>
+  <p class="lead">Mesmo padrão da Supabase: push na <code>main</code> publica em produção, e cada PR ganha um preview com o link comentado no próprio PR.</p>
+  <ol>
+    <li>Gere um token em <a href="https://app.netlify.com/user/applications#personal-access-tokens" target="_blank" rel="noopener">Netlify → Personal access tokens</a>.</li>
+    <li>Pegue o ID do site em <code>.netlify/state.json</code>.</li>
+    <li>Cadastre os secrets:</li>
+  </ol>
+<pre><code>gh secret set NETLIFY_AUTH_TOKEN
+gh secret set NETLIFY_SITE_ID</code></pre>
+<pre><code>gh workflow run netlify-deploy.yml
+gh run watch</code></pre>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="secrets">Cadastrei os dois secrets</li>
+    <li data-tarefa="preview">Abri um PR e recebi o link de preview</li>
   </ul></div>
 </section>
 
