@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tutorial GitHub + Supabase</title>
+<style>
+  :root {
+    --fundo: #f6f7f9;
+    --painel: #ffffff;
+    --texto: #1c1e21;
+    --suave: #5f6368;
+    --borda: #dfe2e6;
+    --destaque: #1a9e63;
+    --destaque-fundo: #e5f6ee;
+    --codigo-fundo: #f0f2f5;
+    --aviso-fundo: #fff6e0;
+    --aviso-borda: #e8b931;
+    --sidebar: 300px;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #111315;
+      --painel: #1a1d20;
+      --texto: #e8eaed;
+      --suave: #9aa0a6;
+      --borda: #2e3236;
+      --destaque: #3ecf8e;
+      --destaque-fundo: #16302a;
+      --codigo-fundo: #23272b;
+      --aviso-fundo: #2e2814;
+      --aviso-borda: #a8841f;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fundo: #111315;
+    --painel: #1a1d20;
+    --texto: #e8eaed;
+    --suave: #9aa0a6;
+    --borda: #2e3236;
+    --destaque: #3ecf8e;
+    --destaque-fundo: #16302a;
+    --codigo-fundo: #23272b;
+    --aviso-fundo: #2e2814;
+    --aviso-borda: #a8841f;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); line-height: 1.55; }
+  a { color: var(--destaque); }
+
+  /* ---------- Layout ---------- */
+  .layout { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: 100vh; }
+  aside {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: var(--painel); border-right: 1px solid var(--borda); padding: 20px 16px;
+  }
+  main { padding: 32px 40px 80px; max-width: 860px; width: 100%; }
+
+  .marca { font-weight: 700; font-size: 1.05rem; margin: 0 0 4px; }
+  .sub { color: var(--suave); font-size: 0.85rem; margin: 0 0 16px; }
+
+  .progresso-total { margin-bottom: 16px; }
+  .barra { height: 6px; background: var(--borda); border-radius: 99px; overflow: hidden; }
+  .barra > span { display: block; height: 100%; width: 0; background: var(--destaque); transition: width .25s; }
+  .progresso-total small { color: var(--suave); display: block; margin-top: 4px; font-size: 0.8rem; }
+
+  #busca {
+    width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--borda);
+    background: var(--fundo); color: var(--texto); font: inherit; font-size: 0.9rem; margin-bottom: 12px;
+  }
+
+  nav h3 {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--suave);
+    margin: 18px 0 6px; display: flex; justify-content: space-between;
+  }
+  nav ol { list-style: none; margin: 0; padding: 0; }
+  nav a {
+    display: flex; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px;
+    color: var(--texto); text-decoration: none; font-size: 0.9rem;
+  }
+  nav a:hover { background: var(--fundo); }
+  nav a.ativo { background: var(--destaque-fundo); color: var(--destaque); font-weight: 600; }
+  nav .bolinha {
+    flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--borda);
+    display: grid; place-items: center; font-size: 10px; color: #fff;
+  }
+  nav a.feito .bolinha { background: var(--destaque); border-color: var(--destaque); }
+  nav a.feito .bolinha::after { content: "✓"; }
+  nav a.parcial .bolinha { border-color: var(--destaque); }
+
+  .tema { margin-top: 20px; font-size: 0.8rem; color: var(--suave); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .tema button, .reset {
+    font: inherit; font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; cursor: pointer;
+    background: transparent; color: var(--suave); border: 1px solid var(--borda);
+  }
+  .tema button[aria-pressed="true"] { color: var(--texto); border-color: var(--texto); }
+
+  .menu-mobile { display: none; }
+
+  /* ---------- Conteúdo ---------- */
+  section[data-passo] { display: none; }
+  section[data-passo].visivel { display: block; }
+  .trilha { color: var(--destaque); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: .06em; }
+  h1 { font-size: 1.8rem; margin: 4px 0 8px; line-height: 1.2; }
+  h2 { font-size: 1.15rem; margin: 28px 0 8px; }
+  .lead { color: var(--suave); font-size: 1.05rem; margin-top: 0; }
+
+  pre {
+    position: relative; background: var(--codigo-fundo); border: 1px solid var(--borda); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; font-size: 0.86rem; line-height: 1.5;
+  }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  :not(pre) > code { background: var(--codigo-fundo); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; }
+  .copiar {
+    position: absolute; top: 8px; right: 8px; font: inherit; font-size: 0.75rem; cursor: pointer;
+    padding: 3px 8px; border-radius: 6px; border: 1px solid var(--borda); background: var(--painel); color: var(--suave);
+  }
+  .copiar.ok { color: var(--destaque); border-color: var(--destaque); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; margin: 8px 0; display: block; overflow-x: auto; }
+  th, td { border: 1px solid var(--borda); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--codigo-fundo); }
+
+  .dica, .aviso { border-left: 4px solid var(--destaque); background: var(--destaque-fundo); padding: 10px 14px; border-radius: 6px; margin: 16px 0; }
+  .aviso { border-color: var(--aviso-borda); background: var(--aviso-fundo); }
+  .prompt { border-left-color: #8b6fd6; background: color-mix(in srgb, #8b6fd6 12%, var(--painel)); font-style: italic; }
+
+  figure { margin: 16px 0; }
+  figure img { max-width: 100%; border-radius: 8px; border: 1px solid var(--borda); display: block; }
+  figcaption { color: var(--suave); font-size: 0.85rem; margin-top: 6px; }
+
+  .tarefas {
+    background: var(--painel); border: 1px solid var(--borda); border-radius: 10px; padding: 14px 16px; margin: 28px 0 0;
+  }
+  .tarefas h2 { margin: 0 0 8px; font-size: 1rem; }
+  .tarefas ul { list-style: none; margin: 0; padding: 0; }
+  .tarefas li { padding: 4px 0; }
+  .tarefas label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+  .tarefas input { margin-top: 4px; accent-color: var(--destaque); width: 16px; height: 16px; flex: none; }
+  .tarefas input:checked + span { color: var(--suave); text-decoration: line-through; }
+
+  .navegacao { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; }
+  .navegacao a {
+    flex: 1; padding: 12px 14px; border: 1px solid var(--borda); border-radius: 10px; text-decoration: none;
+    background: var(--painel); color: var(--texto); font-size: 0.9rem;
+  }
+  .navegacao a small { display: block; color: var(--suave); }
+  .navegacao a.proximo { text-align: right; }
+  .navegacao a:hover { border-color: var(--destaque); }
+  .doc { font-size: 0.85rem; color: var(--suave); margin-top: 20px; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    aside { position: fixed; inset: 0 auto 0 0; width: min(320px, 88vw); z-index: 10; transform: translateX(-100%); transition: transform .2s; }
+    body.menu-aberto aside { transform: none; box-shadow: 0 0 0 100vmax rgba(0,0,0,.4); }
+    .menu-mobile {
+      display: flex; position: sticky; top: 0; z-index: 5; align-items: center; gap: 10px;
+      background: var(--painel); border-bottom: 1px solid var(--borda); padding: 10px 16px;
+    }
+    .menu-mobile button { font: inherit; background: none; border: 1px solid var(--borda); color: var(--texto); border-radius: 6px; padding: 4px 10px; }
+    main { padding: 20px 16px 60px; }
+    h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="menu-mobile">
+  <button type="button" id="abrir-menu" aria-label="Abrir menu">☰</button>
+  <strong>Tutorial GitHub + Supabase</strong>
+</div>
+
+<div class="layout">
+  <aside>
+    <p class="marca">📘 Tutorial GitHub + Supabase</p>
+    <p class="sub">Do repositório ao deploy, pela linha de comando.</p>
+    <div class="progresso-total">
+      <div class="barra"><span id="barra-total"></span></div>
+      <small id="texto-total"></small>
+    </div>
+    <input id="busca" type="search" placeholder="Buscar passo ou comando…" />
+    <nav id="nav"></nav>
+    <div class="tema">
+      Tema:
+      <button type="button" data-tema="auto">Auto</button>
+      <button type="button" data-tema="light">Claro</button>
+      <button type="button" data-tema="dark">Escuro</button>
+    </div>
+    <p><button type="button" class="reset" id="zerar">Zerar progresso</button></p>
+  </aside>
+
+  <main id="conteudo">
+
+<!-- ================= COMECE AQUI ================= -->
+
+<section data-passo="boas-vindas" data-trilha="Comece aqui" data-titulo="Boas-vindas">
+  <h1>Boas-vindas 👋</h1>
+  <p class="lead">Este tutorial reúne tudo o que montamos no repositório <code>github-integration-test</code>: Git e GitHub pelo terminal, a Supabase CLI e um app de Notas completo.</p>
+  <h2>Como usar</h2>
+  <ul>
+    <li>Siga as trilhas na ordem do menu. Cada passo tem uma <strong>checklist</strong> no final.</li>
+    <li>Marque as tarefas conforme for fazendo. O progresso fica salvo neste navegador.</li>
+    <li>Todo bloco de código tem um botão <strong>Copiar</strong>.</li>
+    <li>Os quadros roxos são <strong>prompts</strong> que você pode mandar direto para o Claude.</li>
+  </ul>
+  <h2>Trilhas</h2>
+  <table>
+    <tr><th>Trilha</th><th>O que você aprende</th></tr>
+    <tr><td>GitHub</td><td>Criar e clonar repositórios, commits, <code>gh</code>, pull requests</td></tr>
+    <tr><td>Supabase CLI</td><td>Login, projetos, migrations, Edge Functions, deploy pelo GitHub Actions</td></tr>
+    <tr><td>App de Notas</td><td>Banco com RLS, Auth, Storage, Realtime, Edge Function e tipos, num app real</td></tr>
+    <tr><td>Netlify</td><td>Publicar o app (em breve)</td></tr>
+  </table>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="ler">Li como o tutorial funciona</li>
+  </ul></div>
+</section>
+
+<section data-passo="ferramentas" data-trilha="Comece aqui" data-titulo="Instalar as ferramentas">
+  <h1>Instalar as ferramentas</h1>
+  <p class="lead">Tudo pelo Homebrew, no macOS.</p>
+  <table>
+    <tr><th>Ferramenta</th><th>Instalação</th><th>Login</th></tr>
+    <tr><td>Git</td><td><code>xcode-select --install</code></td><td>—</td></tr>
+    <tr><td>GitHub CLI</td><td><code>brew install gh</code></td><td><code>gh auth login</code></td></tr>
+    <tr><td>Supabase CLI</td><td><code>brew install supabase/tap/supabase</code></td><td><code>supabase login</code></td></tr>
+    <tr><td>Node.js</td><td><code>brew install node</code></td><td>—</td></tr>
+    <tr><td>Docker (opcional)</td><td>Docker Desktop ou OrbStack</td><td>—</td></tr>
+  </table>
+  <p>Depois, confira tudo de uma vez:</p>
+<pre><code>./scripts/check-tools.sh</code></pre>
+  <div class="dica">O Docker só é necessário para rodar a Supabase <em>localmente</em> (<code>supabase start</code>). Tudo neste tutorial funciona direto no projeto remoto, sem Docker.</div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="gh">GitHub CLI instalada e <code>gh auth status</code> mostra ✓</li>
+    <li data-tarefa="sb">Supabase CLI instalada e <code>supabase projects list</code> funciona</li>
+    <li data-tarefa="node">Node.js instalado</li>
+  </ul></div>
+</section>
+
+<!-- ================= GITHUB ================= -->
+
+<section data-passo="novo-repo" data-trilha="GitHub" data-titulo="Criar e clonar um repositório" data-doc="docs/github/00-novo-repositorio.md">
+  <h1>Criar e clonar um repositório</h1>
+  <p class="lead">Três caminhos. Todos terminam com uma pasta local ligada ao GitHub.</p>
+
+  <h2>Opção 1: pedir ao Claude</h2>
+  <p>Abra o Claude Code na pasta onde ficam seus projetos e peça:</p>
+  <div class="dica prompt">Crie um repositório privado no GitHub chamado meu-projeto, com README e .gitignore de Node, e clone ele em ~/Documents/Projects/meu-projeto.</div>
+  <p>O Claude usa o <code>gh</code> e o <code>git</code> por baixo, os mesmos comandos da opção 2. Depois, abra uma sessão nova <strong>dentro</strong> da pasta do projeto.</p>
+
+  <h2>Opção 2: terminal com <code>gh</code></h2>
+<pre><code>gh repo create meu-projeto --private --add-readme --gitignore Node --clone
+cd meu-projeto</code></pre>
+  <p>Já tem código numa pasta local?</p>
+<pre><code>git init
+git add .
+git commit -m "Primeiro commit"
+gh repo create meu-projeto --private --source=. --push</code></pre>
+
+  <h2>Opção 3: site do GitHub + <code>git clone</code></h2>
+  <ol>
+    <li>Acesse <a href="https://github.com/new" target="_blank" rel="noopener">github.com/new</a>, dê um nome, escolha <strong>Private</strong> e marque <strong>Add a README</strong>.</li>
+    <li>No botão verde <strong>Code</strong>, copie a URL HTTPS.</li>
+  </ol>
+<pre><code>git clone https://github.com/&lt;usuario&gt;/meu-projeto.git</code></pre>
+
+  <h2>Conferir</h2>
+<pre><code>git remote -v
+gh repo view --web</code></pre>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="criar">Criei um repositório de teste</li>
+    <li data-tarefa="clonar">Clonei e conferi o <code>git remote -v</code></li>
+  </ul></div>
+</section>
+
+<section data-passo="git-basico" data-trilha="GitHub" data-titulo="Git no dia a dia" data-doc="docs/github/01-git-basico.md">
+  <h1>Git no dia a dia</h1>
+  <p class="lead">O ciclo básico: branch, mudança, commit, push.</p>
+<pre><code>git checkout -b feat/minha-mudanca
+# ... edite os arquivos ...
+git status
+git add arquivo.txt
+git commit -m "Descreve a mudança"
+git push -u origin feat/minha-mudanca</code></pre>
+  <h2>Micro commits</h2>
+  <p>Prefira vários commits pequenos, cada um com <strong>uma</strong> ideia ("Adiciona tabela notas", "Adiciona login"), a um commitzão com tudo. Fica mais fácil revisar, entender o histórico e desfazer algo específico.</p>
+  <div class="dica prompt">Faça micro commits das mudanças, um por assunto, e suba para o GitHub.</div>
+  <h2>Desfazer</h2>
+  <table>
+    <tr><th>Situação</th><th>Comando</th></tr>
+    <tr><td>Descartar mudança num arquivo</td><td><code>git restore arquivo</code></td></tr>
+    <tr><td>Tirar do <code>add</code></td><td><code>git restore --staged arquivo</code></td></tr>
+    <tr><td>Corrigir o último commit (antes do push)</td><td><code>git commit --amend</code></td></tr>
+    <tr><td>Desfazer um commit já enviado</td><td><code>git revert &lt;hash&gt;</code></td></tr>
+  </table>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="branch">Criei uma branch e fiz um commit</li>
+    <li data-tarefa="push">Fiz push da branch</li>
+  </ul></div>
+</section>
+
+<section data-passo="gh-cli" data-trilha="GitHub" data-titulo="GitHub CLI" data-doc="docs/github/02-github-cli.md">
+  <h1>GitHub CLI (<code>gh</code>)</h1>
+  <p class="lead">Quase tudo do site do GitHub, pelo terminal.</p>
+<pre><code>gh repo list                    # seus repositórios
+gh pr create --fill             # abre PR com base nos commits
+gh pr list
+gh pr checks                    # CI do PR atual
+gh run list                     # execuções do GitHub Actions
+gh run view &lt;id&gt; --log-failed   # só o log do que falhou
+gh secret set NOME              # pede o valor de forma interativa</code></pre>
+  <div class="aviso">Nunca passe o valor de um secret direto no comando (<code>gh secret set X --body valor</code>): ele fica salvo no histórico do shell.</div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="list">Rodei <code>gh repo list</code></li>
+    <li data-tarefa="web">Abri um repo com <code>gh repo view --web</code></li>
+  </ul></div>
+</section>
+
+<section data-passo="pull-requests" data-trilha="GitHub" data-titulo="Pull requests" data-doc="docs/github/03-pull-requests.md">
+  <h1>Pull requests</h1>
+  <p class="lead">Quando o Claude abre um PR, aparece uma barra no topo da sessão. Veja como ler essa barra e o que fazer em seguida.</p>
+  <figure>
+    <img src="img/barra-pr-claude.png" alt="Barra de PR no app do Claude: #1, github-integration-test, feat/tutorial-notas, +2.391 −69, CI" />
+    <figcaption>A barra de PR na aba Code do app do Claude, logo depois de abrir o PR #1.</figcaption>
+  </figure>
+  <table>
+    <tr><th>Parte</th><th>Significado</th></tr>
+    <tr><td><code>#1</code></td><td>Número do PR. Clique para abrir no GitHub.</td></tr>
+    <tr><td><code>feat/tutorial-notas</code></td><td>Branch com as mudanças, que vai entrar na <code>main</code>.</td></tr>
+    <tr><td><code>+2.391 −69</code></td><td>Linhas adicionadas e removidas. Clique para ver o diff.</td></tr>
+    <tr><td><code>○ CI</code></td><td>Checks automáticos. <code>○</code> = nenhum rodou ou ainda está rodando; ✓ = passou; ✗ = falhou.</td></tr>
+    <tr><td><code>×</code></td><td>Esconde a barra. <strong>Não</strong> fecha o PR.</td></tr>
+  </table>
+  <h2>O que fazer</h2>
+  <ol>
+    <li><strong>Revisar</strong>: aba <em>Files changed</em> no GitHub, ou commit por commit na aba <em>Commits</em>.</li>
+    <li><strong>CI</strong>: se aparecer ✗, peça ao Claude: <em>"veja por que o CI falhou e corrija"</em>.</li>
+    <li><strong>Ajustes</strong>: peça na mesma sessão. Os novos commits entram no mesmo PR.</li>
+    <li><strong>Merge</strong>:</li>
+  </ol>
+<pre><code>gh pr merge 1 --squash --delete-branch   # 1 commit na main
+gh pr merge 1 --merge --delete-branch    # mantém os micro commits</code></pre>
+  <ol start="5"><li><strong>Atualizar a máquina</strong>:</li></ol>
+<pre><code>git checkout main
+git pull</code></pre>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="barra">Entendi cada parte da barra de PR</li>
+    <li data-tarefa="revisar">Revisei o diff de um PR</li>
+    <li data-tarefa="merge">Fiz o merge e atualizei a <code>main</code> local</li>
+  </ul></div>
+</section>
+
+<!-- ================= SUPABASE CLI ================= -->
+
+<section data-passo="sb-login" data-trilha="Supabase CLI" data-titulo="Login e projetos" data-doc="docs/supabase/01-instalacao-e-login.md">
+  <h1>Login e projetos</h1>
+<pre><code>supabase login            # abre o navegador; cole o código de verificação no terminal
+supabase orgs list
+supabase projects list</code></pre>
+  <h2>Escolher ou criar o projeto deste repo</h2>
+<pre><code>./scripts/projeto.sh</code></pre>
+<pre><code>== Seus projetos ==
+  1) icomtvplus-oss's Project       bxpbskajkfevmvummghj  us-west-2  ACTIVE_HEALTHY
+  2) tutorial-notas                 zgccfwijmnjzvxmasfiu  sa-east-1  ACTIVE_HEALTHY
+  n) criar um projeto novo</code></pre>
+  <p>O script roda o <code>supabase link</code> e grava o <code>.env</code> e o <code>app/.env.local</code> com a URL e a <em>publishable key</em>.</p>
+  <h2>Chaves</h2>
+  <table>
+    <tr><th>Chave</th><th>Onde usar</th><th>Pode expor?</th></tr>
+    <tr><td><code>sb_publishable_…</code></td><td>Front-end</td><td>Sim. Quem protege os dados é o RLS.</td></tr>
+    <tr><td><code>sb_secret_…</code></td><td>Servidor / Edge Functions</td><td><strong>Nunca</strong></td></tr>
+  </table>
+  <div class="dica">A CLI não precisa da senha do banco para <code>link</code> e <code>db push</code>: ela usa uma role temporária vinculada ao seu login.</div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="login">Fiz <code>supabase login</code></li>
+    <li data-tarefa="link">Rodei <code>./scripts/projeto.sh</code> e vinculei um projeto</li>
+  </ul></div>
+</section>
+
+<section data-passo="sb-migrations" data-trilha="Supabase CLI" data-titulo="Migrations" data-doc="docs/supabase/03-banco-e-migrations.md">
+  <h1>Migrations</h1>
+  <p class="lead">O schema do banco versionado em arquivos SQL, em <code>supabase/migrations/</code>.</p>
+<pre><code>supabase migration new adicionar_cor_nas_notas   # cria o arquivo
+supabase db push --dry-run                        # o que será aplicado
+supabase db push                                  # aplica no projeto vinculado
+supabase migration list                           # local x remoto
+supabase db pull                                  # traz mudanças feitas no dashboard</code></pre>
+  <div class="aviso">Nunca edite uma migration que já foi aplicada. Crie uma nova.</div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="list">Rodei <code>supabase migration list</code></li>
+    <li data-tarefa="dry">Entendi a diferença entre <code>db push</code> e <code>db pull</code></li>
+  </ul></div>
+</section>
+
+<section data-passo="sb-functions" data-trilha="Supabase CLI" data-titulo="Edge Functions e secrets" data-doc="docs/supabase/04-edge-functions-secrets-tipos.md">
+  <h1>Edge Functions e secrets</h1>
+<pre><code>supabase functions new minha-funcao
+supabase functions deploy minha-funcao --use-api   # --use-api: sem Docker
+supabase functions list
+
+supabase secrets set MINHA_CHAVE=valor
+supabase secrets list</code></pre>
+  <p>Dentro da função: <code>Deno.env.get("MINHA_CHAVE")</code>.</p>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="list">Rodei <code>supabase functions list</code></li>
+    <li data-tarefa="secrets">Rodei <code>supabase secrets list</code></li>
+  </ul></div>
+</section>
+
+<section data-passo="sb-actions" data-trilha="Supabase CLI" data-titulo="Deploy pelo GitHub Actions" data-doc="docs/supabase/05-github-actions.md">
+  <h1>Deploy pelo GitHub Actions</h1>
+  <p class="lead">A cada merge na <code>main</code> que altere <code>supabase/**</code>, o workflow aplica as migrations e publica as funções.</p>
+  <ol>
+    <li>Gere um token em <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener">supabase.com/dashboard/account/tokens</a>.</li>
+    <li>Cadastre os secrets (cada comando pede o valor):</li>
+  </ol>
+<pre><code>gh secret set SUPABASE_ACCESS_TOKEN
+gh secret set SUPABASE_PROJECT_REF</code></pre>
+  <ol start="3"><li>Teste disparando à mão:</li></ol>
+<pre><code>gh workflow run supabase-deploy.yml
+gh run watch</code></pre>
+  <div class="dica">Sem os secrets, o workflow termina com um aviso em vez de falhar.</div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="token">Gerei o access token</li>
+    <li data-tarefa="secrets">Cadastrei os dois secrets</li>
+    <li data-tarefa="run">Rodei o workflow com sucesso</li>
+  </ul></div>
+</section>
+
+<!-- ================= APP DE NOTAS ================= -->
+
+<section data-passo="app-rodar" data-trilha="App de Notas" data-titulo="Rodar o app" data-doc="docs/tutorial/README.md">
+  <h1>Rodar o app de Notas</h1>
+  <p class="lead">Um app pequeno (Vite + supabase-js) que usa, módulo a módulo, as principais funcionalidades da Supabase.</p>
+<pre><code>cd app
+npm install
+npm run dev     # http://localhost:5173</code></pre>
+<pre><code>Navegador (app/, Vite)
+   │  supabase-js + publishable key + token do usuário
+   ▼
+Supabase (tutorial-notas)
+   ├── Auth ........... cadastro/login, emite o JWT
+   ├── Postgres ....... tabela notas (RLS: cada um vê só as suas)
+   ├── Storage ........ bucket anexos (pasta = id do usuário)
+   ├── Realtime ....... publica mudanças da tabela notas
+   └── Edge Function .. exportar-notas</code></pre>
+  <div class="aviso">Antes do primeiro cadastro, aplique a configuração de Auth do repositório (desliga a confirmação de e-mail e aponta para <code>localhost:5173</code>):
+<pre><code>supabase config diff
+supabase config push</code></pre></div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="config">Apliquei o <code>config push</code></li>
+    <li data-tarefa="dev">O app abriu em <code>localhost:5173</code></li>
+  </ul></div>
+</section>
+
+<section data-passo="app-banco" data-trilha="App de Notas" data-titulo="Banco + RLS" data-doc="docs/tutorial/01-banco.md">
+  <h1>Banco + RLS</h1>
+  <p class="lead">A publishable key fica no navegador, ao alcance de qualquer pessoa. Quem impede um usuário de ler as notas dos outros é o <strong>Row Level Security</strong>.</p>
+<pre><code>alter table public.notas enable row level security;
+
+create policy "notas: ler as próprias"
+on public.notas for select to authenticated
+using ((select auth.uid()) = user_id);</code></pre>
+  <p>A coluna <code>user_id</code> tem <code>default auth.uid()</code>, então o app nem precisa enviá-la.</p>
+  <h2>Prove que o RLS funciona</h2>
+  <p>Sem login, a API responde uma lista vazia:</p>
+<pre><code>curl "https://zgccfwijmnjzvxmasfiu.supabase.co/rest/v1/notas" \
+  -H "apikey: $(grep PUBLISHABLE app/.env.local | cut -d= -f2)"
+# → []</code></pre>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="ler">Li a migration <code>criar_tabela_notas.sql</code></li>
+    <li data-tarefa="curl">Rodei o <code>curl</code> e recebi <code>[]</code></li>
+  </ul></div>
+</section>
+
+<section data-passo="app-auth" data-trilha="App de Notas" data-titulo="Auth" data-doc="docs/tutorial/03-auth.md">
+  <h1>Auth: e-mail e senha</h1>
+<pre><code>await supabase.auth.signUp({ email, password });
+await supabase.auth.signInWithPassword({ email, password });
+await supabase.auth.signOut();
+
+supabase.auth.onAuthStateChange((evento, session) => { /* login/logout */ });</code></pre>
+  <p>A sessão fica no <code>localStorage</code> e o token é renovado sozinho. Os usuários aparecem em <strong>Dashboard → Authentication → Users</strong>.</p>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="cadastro">Criei uma conta no app</li>
+    <li data-tarefa="dashboard">Vi o usuário no dashboard</li>
+    <li data-tarefa="sair">Saí e entrei de novo</li>
+  </ul></div>
+</section>
+
+<section data-passo="app-crud" data-trilha="App de Notas" data-titulo="CRUD de notas" data-doc="docs/tutorial/02-interface.md">
+  <h1>CRUD de notas</h1>
+<pre><code>supabase.from("notas").select("*").order("criado_em", { ascending: false });
+supabase.from("notas").insert({ titulo, conteudo }).select().single();
+supabase.from("notas").update({ titulo }).eq("id", id);
+supabase.from("notas").delete().eq("id", id);</code></pre>
+  <p>Repare que não há nenhum <code>.eq("user_id", …)</code>: o RLS já filtra pelo usuário logado.</p>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="criar">Criei uma nota</li>
+    <li data-tarefa="editar">Editei a nota</li>
+    <li data-tarefa="tabela">Vi a nota em <strong>Table Editor → notas</strong></li>
+  </ul></div>
+</section>
+
+<section data-passo="app-storage" data-trilha="App de Notas" data-titulo="Storage" data-doc="docs/tutorial/04-storage.md">
+  <h1>Storage: anexos</h1>
+  <p class="lead">Bucket <strong>privado</strong> <code>anexos</code>. Cada usuário só acessa a pasta com o próprio id.</p>
+<pre><code>&lt;user_id&gt;/&lt;nota_id&gt;/&lt;timestamp&gt;-&lt;arquivo&gt;</code></pre>
+<pre><code>await supabase.storage.from("anexos").upload(caminho, arquivo);
+await supabase.storage.from("anexos").createSignedUrl(caminho, 60); // link de 60 s</code></pre>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="upload">Anexei um arquivo numa nota</li>
+    <li data-tarefa="abrir">Abri o anexo pelo botão 📎</li>
+  </ul></div>
+</section>
+
+<section data-passo="app-realtime" data-trilha="App de Notas" data-titulo="Realtime" data-doc="docs/tutorial/05-realtime.md">
+  <h1>Realtime</h1>
+<pre><code>supabase
+  .channel("notas-do-usuario")
+  .on("postgres_changes", { event: "*", schema: "public", table: "notas" }, recarregar)
+  .subscribe();</code></pre>
+  <p>A tabela entrou na publicação <code>supabase_realtime</code> pela migration. O RLS também vale para os eventos.</p>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="abas">Abri o app em duas abas</li>
+    <li data-tarefa="ao-vivo">Criei uma nota numa aba e ela apareceu na outra</li>
+  </ul></div>
+</section>
+
+<section data-passo="app-function" data-trilha="App de Notas" data-titulo="Edge Function" data-doc="docs/tutorial/06-edge-function.md">
+  <h1>Edge Function: exportar notas</h1>
+<pre><code>import { withSupabase } from "@supabase/server";
+
+export default {
+  fetch: withSupabase({ auth: "user" }, async (_req, ctx) => {
+    const { data } = await ctx.supabase.from("notas").select("*"); // RLS do usuário
+    // ... monta o Markdown
+  }),
+};</code></pre>
+  <p>No app: <code>supabase.functions.invoke("exportar-notas")</code>. O título do arquivo vem do secret <code>TITULO_EXPORTACAO</code>.</p>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="exportar">Cliquei em "Exportar .md" e baixei o arquivo</li>
+    <li data-tarefa="logs">Vi os logs em <strong>Edge Functions → exportar-notas</strong></li>
+  </ul></div>
+</section>
+
+<section data-passo="app-tipos" data-trilha="App de Notas" data-titulo="Tipos + fluxo completo" data-doc="docs/tutorial/07-tipos-e-ci.md">
+  <h1>Tipos + fluxo completo</h1>
+<pre><code>cd app && npm run types   # gera src/database.types.ts a partir do banco</code></pre>
+  <h2>O fluxo de uma mudança, do início ao fim</h2>
+<pre><code>git checkout -b feat/cor-nas-notas
+supabase migration new adicionar_cor_nas_notas
+# edite o SQL
+supabase db push --dry-run
+cd app && npm run types
+git add . && git commit -m "Adiciona cor nas notas"
+gh pr create --fill
+# merge na main → o Actions aplica a migration</code></pre>
+  <div class="dica prompt">Adicione uma coluna "cor" nas notas, com migration, tipos atualizados e um seletor de cor no app. Faça micro commits e abra um PR.</div>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="types">Rodei <code>npm run types</code></li>
+    <li data-tarefa="fluxo">Fiz uma mudança completa: migration → PR → merge</li>
+  </ul></div>
+</section>
+
+<!-- ================= NETLIFY ================= -->
+
+<section data-passo="netlify" data-trilha="Netlify" data-titulo="Publicar o app (em breve)">
+  <h1>Netlify (em breve)</h1>
+  <p class="lead">A próxima etapa: publicar o app e este tutorial no Netlify, com deploy automático a cada merge e preview de cada PR.</p>
+  <ul>
+    <li>Instalar a Netlify CLI e fazer <code>netlify login</code></li>
+    <li>Criar o site e o <code>netlify.toml</code></li>
+    <li>Configurar as variáveis da Supabase no Netlify</li>
+    <li>Ligar o deploy ao GitHub</li>
+  </ul>
+  <div class="tarefas"><h2>Checklist</h2><ul>
+    <li data-tarefa="aguardar">Vi o que vem a seguir</li>
+  </ul></div>
+</section>
+
+  </main>
+</div>
+
+<script>
+(() => {
+  const REPO = "https://github.com/ventura24601/github-integration-test/blob/main/";
+  const CHAVE = "tutorial-progresso-v1";
+
+  // ---------- armazenamento (pode falhar em modo privado) ----------
+  const ler = () => { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch { return {}; } };
+  const gravar = (v) => { try { localStorage.setItem(CHAVE, JSON.stringify(v)); } catch {} };
+  let progresso = ler();
+
+  const passos = [...document.querySelectorAll("section[data-passo]")];
+  const nav = document.getElementById("nav");
+
+  // ---------- monta checklists ----------
+  passos.forEach((s) => {
+    s.querySelectorAll("[data-tarefa]").forEach((li) => {
+      const id = `${s.dataset.passo}:${li.dataset.tarefa}`;
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = !!progresso[id];
+      input.addEventListener("change", () => {
+        if (input.checked) progresso[id] = true; else delete progresso[id];
+        gravar(progresso);
+        atualizar();
+      });
+      const span = document.createElement("span");
+      span.innerHTML = li.innerHTML;
+      label.append(input, span);
+      li.replaceChildren(label);
+    });
+
+    if (s.dataset.doc) {
+      const p = document.createElement("p");
+      p.className = "doc";
+      p.innerHTML = `Versão completa em texto: <a href="${REPO + s.dataset.doc}" target="_blank" rel="noopener">${s.dataset.doc}</a>`;
+      s.querySelector(".tarefas").before(p);
+    }
+  });
+
+  const tarefasDe = (s) => [...s.querySelectorAll(".tarefas input")];
+  const estado = (s) => {
+    const t = tarefasDe(s), f = t.filter((i) => i.checked).length;
+    return f === 0 ? "" : f === t.length ? "feito" : "parcial";
+  };
+
+  // ---------- menu ----------
+  const trilhas = [];
+  passos.forEach((s) => {
+    let t = trilhas.find((x) => x.nome === s.dataset.trilha);
+    if (!t) trilhas.push((t = { nome: s.dataset.trilha, passos: [] }));
+    t.passos.push(s);
+  });
+  trilhas.forEach((t) => {
+    const h = document.createElement("h3");
+    h.innerHTML = `<span>${t.nome}</span><span data-contagem></span>`;
+    const ol = document.createElement("ol");
+    t.passos.forEach((s) => {
+      const a = document.createElement("a");
+      a.href = "#" + s.dataset.passo;
+      a.dataset.alvo = s.dataset.passo;
+      a.innerHTML = `<span class="bolinha"></span><span>${s.dataset.titulo}</span>`;
+      const li = document.createElement("li");
+      li.append(a);
+      ol.append(li);
+    });
+    t.h = h;
+    nav.append(h, ol);
+  });
+
+  // ---------- anterior / próximo ----------
+  passos.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "navegacao";
+    const ant = passos[i - 1], prox = passos[i + 1];
+    div.innerHTML =
+      (ant ? `<a href="#${ant.dataset.passo}"><small>← Anterior</small>${ant.dataset.titulo}</a>` : "<span></span>") +
+      (prox ? `<a class="proximo" href="#${prox.dataset.passo}"><small>Próximo →</small>${prox.dataset.titulo}</a>` : "");
+    s.append(div);
+  });
+
+  // ---------- botões de copiar ----------
+  document.querySelectorAll("pre").forEach((pre) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "copiar";
+    b.textContent = "Copiar";
+    b.addEventListener("click", async () => {
+      const texto = pre.querySelector("code").innerText;
+      try { await navigator.clipboard.writeText(texto); b.textContent = "Copiado ✓"; b.classList.add("ok"); }
+      catch { b.textContent = "Selecione e copie"; }
+      setTimeout(() => { b.textContent = "Copiar"; b.classList.remove("ok"); }, 1500);
+    });
+    pre.append(b);
+  });
+
+  // ---------- progresso ----------
+  function atualizar() {
+    let feitos = 0, total = 0;
+    passos.forEach((s) => {
+      const t = tarefasDe(s);
+      total += t.length;
+      feitos += t.filter((i) => i.checked).length;
+      const a = nav.querySelector(`[data-alvo="${s.dataset.passo}"]`);
+      a.classList.remove("feito", "parcial");
+      const e = estado(s);
+      if (e) a.classList.add(e);
+    });
+    trilhas.forEach((t) => {
+      const ok = t.passos.filter((s) => estado(s) === "feito").length;
+      t.h.querySelector("[data-contagem]").textContent = `${ok}/${t.passos.length}`;
+    });
+    const pct = total ? Math.round((feitos / total) * 100) : 0;
+    document.getElementById("barra-total").style.width = pct + "%";
+    document.getElementById("texto-total").textContent = `${feitos} de ${total} tarefas · ${pct}%`;
+  }
+
+  // ---------- rotas ----------
+  function mostrar() {
+    const id = location.hash.slice(1);
+    const alvo = passos.find((s) => s.dataset.passo === id) || passos[0];
+    passos.forEach((s) => s.classList.toggle("visivel", s === alvo));
+    nav.querySelectorAll("a").forEach((a) => a.classList.toggle("ativo", a.dataset.alvo === alvo.dataset.passo));
+    document.title = `${alvo.dataset.titulo} · Tutorial GitHub + Supabase`;
+    document.body.classList.remove("menu-aberto");
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", mostrar);
+
+  // ---------- busca ----------
+  document.getElementById("busca").addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    passos.forEach((s) => {
+      const a = nav.querySelector(`[data-alvo="${s.dataset.passo}"]`);
+      a.parentElement.hidden = q && !s.textContent.toLowerCase().includes(q);
+    });
+  });
+
+  // ---------- tema ----------
+  const botoesTema = document.querySelectorAll("[data-tema]");
+  function aplicarTema(t) {
+    if (t === "auto") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.dataset.theme = t;
+    botoesTema.forEach((b) => b.setAttribute("aria-pressed", b.dataset.tema === t));
+    try { localStorage.setItem("tutorial-tema", t); } catch {}
+  }
+  botoesTema.forEach((b) => b.addEventListener("click", () => aplicarTema(b.dataset.tema)));
+  let temaSalvo = "auto";
+  try { temaSalvo = localStorage.getItem("tutorial-tema") || "auto"; } catch {}
+  aplicarTema(temaSalvo);
+
+  // ---------- zerar e menu mobile ----------
+  document.getElementById("zerar").addEventListener("click", () => {
+    if (!confirm("Zerar todas as tarefas marcadas?")) return;
+    progresso = {};
+    gravar(progresso);
+    document.querySelectorAll(".tarefas input").forEach((i) => (i.checked = false));
+    atualizar();
+  });
+  document.getElementById("abrir-menu").addEventListener("click", () => document.body.classList.add("menu-aberto"));
+  document.addEventListener("click", (e) => {
+    if (document.body.classList.contains("menu-aberto") && !e.target.closest("aside, #abrir-menu")) {
+      document.body.classList.remove("menu-aberto");
+    }
+  });
+
+  atualizar();
+  mostrar();
+})();
+</script>
+</body>
+</html>
