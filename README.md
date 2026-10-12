@@ -41,6 +41,7 @@ cd app && npm install && npm run dev   # http://localhost:5173
 0. [Criar um repositório novo e clonar](docs/github/00-novo-repositorio.md): pelo Claude, pelo `gh` ou pelo site
 1. [Git básico](docs/github/01-git-basico.md): commits, branches, desfazer mudanças
 2. [GitHub CLI](docs/github/02-github-cli.md): repositórios, PRs, Actions e secrets pelo terminal
+3. [Pull requests](docs/github/03-pull-requests.md): a barra de PR do Claude, revisão, CI e merge
 
 ### Supabase CLI
 1. [Instalação e login](docs/supabase/01-instalacao-e-login.md)
