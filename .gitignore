@@ -1,0 +1,10 @@
+# Variáveis de ambiente (nunca commitar)
+.env
+.env.*
+!.env.example
+
+# Sistema
+.DS_Store
+
+# Node
+node_modules/
