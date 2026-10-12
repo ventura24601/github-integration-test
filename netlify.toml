@@ -1,0 +1,14 @@
+# Configuração do Netlify (lida tanto pelo deploy da CLI quanto pelo Git).
+[build]
+  base = "app"            # pasta do app (onde está o package.json)
+  command = "npm run build"
+  publish = "dist"        # relativo a base → app/dist
+
+[build.environment]
+  NODE_VERSION = "24"
+
+# /tutorial → /tutorial/ (o tutorial interativo fica em app/public/tutorial/)
+[[redirects]]
+  from = "/tutorial"
+  to = "/tutorial/"
+  status = 301

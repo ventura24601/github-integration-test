@@ -1,0 +1,79 @@
+# Publica o app (e o tutorial) no Netlify.
+#   push na main  → deploy de produção
+#   pull request  → deploy de preview com link comentado no PR
+# Requer os secrets NETLIFY_AUTH_TOKEN e NETLIFY_SITE_ID (veja docs/netlify/02-github-actions.md).
+# Sem eles, o job termina sem fazer nada em vez de falhar.
+name: Netlify deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "netlify.toml"
+      - ".github/workflows/netlify-deploy.yml"
+  pull_request:
+    paths:
+      - "app/**"
+      - "netlify.toml"
+      - ".github/workflows/netlify-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - name: Verificar secrets
+        id: check
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::notice::Secrets do Netlify não configurados; deploy ignorado."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.check.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
+      - if: steps.check.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Instalar dependências
+        if: steps.check.outputs.ok == 'true'
+        run: |
+          npm ci --prefix app
+          npm install -g netlify-cli@27
+
+      # `netlify build` usa o netlify.toml e baixa as variáveis (VITE_SUPABASE_*) do site.
+      - name: Build
+        if: steps.check.outputs.ok == 'true'
+        run: netlify build
+
+      - name: Deploy de produção
+        if: steps.check.outputs.ok == 'true' && github.event_name != 'pull_request'
+        run: |
+          url=$(netlify deploy --dir app/dist --prod --json | jq -r '.url')
+          echo "Produção: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy de preview
+        if: steps.check.outputs.ok == 'true' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.number }}
+        run: |
+          url=$(netlify deploy --dir app/dist --alias "pr-$PR" --json | jq -r '.deploy_url')
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --edit-last --create-if-none \
+            --body "🚀 Preview do Netlify: $url"

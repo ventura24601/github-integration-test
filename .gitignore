@@ -11,3 +11,6 @@ node_modules/
 
 # Build do app
 dist/
+
+# Netlify (estado local do link)
+.netlify/
