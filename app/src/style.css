@@ -1,0 +1,103 @@
+:root {
+  --fundo: #f6f7f9;
+  --cartao: #ffffff;
+  --texto: #1c1e21;
+  --suave: #65676b;
+  --borda: #dcdfe4;
+  --primaria: #3ecf8e;
+  --primaria-texto: #0b2e1f;
+  --erro: #c62828;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #121212;
+    --cartao: #1e1e1e;
+    --texto: #ededed;
+    --suave: #a0a0a0;
+    --borda: #333;
+    --erro: #ef5350;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.1rem; }
+
+form, li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+input, textarea, button {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+button {
+  cursor: pointer;
+  background: var(--primaria);
+  color: var(--primaria-texto);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+button.secundario {
+  background: transparent;
+  color: var(--texto);
+  border-color: var(--borda);
+  font-weight: 400;
+}
+
+.acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.arquivo { font-size: 0.9rem; color: var(--suave); }
+
+.barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0 8px;
+}
+
+.status { font-size: 0.85rem; color: var(--suave); }
+.status.ok { color: var(--primaria); }
+
+ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+li p { margin: 0; white-space: pre-wrap; }
+li small { color: var(--suave); }
+li.vazio { color: var(--suave); text-align: center; }
+
+#mensagem { min-height: 1.5em; }
+#mensagem.erro { color: var(--erro); }
