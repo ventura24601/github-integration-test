@@ -1,39 +1,61 @@
 # github-integration-test
 
-Repositório de teste usado para validar a integração com o GitHub.
+Repositório de referência pessoal para trabalhar com **Git/GitHub** e **Supabase** pela linha de comando. Ele serve como guia de consulta e também como projeto de teste das integrações.
 
-## Objetivo
-
-Este repositório existe apenas para verificar se os fluxos básicos de integração com o GitHub funcionam corretamente, como:
-
-- Clonar o repositório
-- Criar commits e enviá-los (`git push`)
-- Criar branches
-- Abrir, revisar e fazer merge de pull requests
-- Executar checks de CI (quando configurados)
-
-## Como usar
-
-Clone o repositório:
+## Comece aqui
 
 ```bash
-git clone https://github.com/ventura24601/github-integration-test.git
-cd github-integration-test
+./scripts/check-tools.sh
 ```
 
-Crie uma branch, faça uma alteração e envie:
+Esse script mostra quais ferramentas estão instaladas e autenticadas.
+
+| Ferramenta     | Instalação                              | Login              |
+|----------------|-----------------------------------------|--------------------|
+| Git            | `xcode-select --install`                | —                  |
+| GitHub CLI     | `brew install gh`                       | `gh auth login`    |
+| Supabase CLI   | `brew install supabase/tap/supabase`    | `supabase login`   |
+| Docker         | Docker Desktop ou OrbStack              | — (para Supabase local) |
+
+## Guias
+
+### GitHub
+1. [Git básico](docs/github/01-git-basico.md): commits, branches, desfazer mudanças
+2. [GitHub CLI](docs/github/02-github-cli.md): repositórios, PRs, Actions e secrets pelo terminal
+
+### Supabase
+1. [Instalação e login](docs/supabase/01-instalacao-e-login.md)
+2. [Projetos e vínculo com o repositório](docs/supabase/02-projetos-e-link.md): `projects list`, `init`, `link`, ambiente local
+3. [Banco e migrations](docs/supabase/03-banco-e-migrations.md): `migration new`, `db push`, `db pull`, dump
+4. [Edge Functions, secrets e tipos](docs/supabase/04-edge-functions-secrets-tipos.md)
+5. [Supabase + GitHub Actions](docs/supabase/05-github-actions.md): deploy automático a cada merge
+
+## Estrutura
+
+```
+.
+├── docs/
+│   ├── github/        # guias de Git e GitHub CLI
+│   ├── supabase/      # guias da Supabase CLI
+│   └── exemplos/      # arquivos prontos para copiar (ex.: workflow de deploy)
+├── scripts/
+│   └── check-tools.sh # verifica ferramentas e logins
+├── supabase/          # projeto Supabase (config.toml, migrations, functions)
+├── .env.example       # variáveis necessárias (copie para .env)
+└── README.md
+```
+
+## Cola rápida
 
 ```bash
-git checkout -b teste/minha-alteracao
-echo "teste" >> teste.txt
-git add teste.txt
-git commit -m "Teste de integração"
-git push -u origin teste/minha-alteracao
+# GitHub
+gh pr create --fill && gh pr checks
+
+# Supabase
+supabase projects list
+supabase link --project-ref <ref>
+supabase migration new <nome>
+supabase db push
+supabase functions deploy <nome>
+supabase gen types typescript --linked > types/database.types.ts
 ```
-
-Em seguida, abra um pull request no GitHub para validar o fluxo completo.
-
-## Observações
-
-- O conteúdo deste repositório não tem valor de produção.
-- Arquivos e branches podem ser criados e removidos livremente durante os testes.
